@@ -10,7 +10,7 @@ Students are expected to:
 Student Info
 =======================
 
-* Name: *YourNameHere*
-* ID: *YourIdHere*
+* Name: *Phung Duc Thai*
+* ID: *BI12-396*
 * Group ID: *Your Group ID here*
 
