@@ -1,0 +1,130 @@
+\documentclass{article}
+\usepackage{graphicx} % Required for inserting images
+\usepackage{multirow}
+\usepackage{biblatex}
+
+\title{Measurement of Fetal head circumference using Ultrasound}
+\author{Thai Phung}
+\date{March 2024}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+
+% ultrasound
+Due to the cost efficiency and safety, ultrasound technologies are useful in pregnant women endoscopic.  Despite the method’s advantages, ultrasound interpretation is complex. Ultrasound image acquisitions require operators. These images are characterized by attenuation and speckles, which might result in shadow and reverberations. 
+% ultrasound screening examination, biometric measurements 
+In ultrasound screening examinations, the gestational age (GA) and the growth of the fetus are estimated by computing biometric measurements of the fetus, such as the crown-rump length (CRL) and the head circumference (HC). While the CRL is most accurate in between 8 weeks and 12 weeks, from the 13th week, the HC is the most accurate measurement for GA estimation. 
+% State problem
+How can GA  estimation help 
+99% maternal deaths global: developing countries (lack of well-trained sonographers)
+Ultrasound screening out of reach
+% State solution
+An automated system could assist inexperienced sonographer to obtain as accurate as possible measurements. 
+% This notebook
+In this project, an auto HC measurement method applying regression is implemented. The approach is based on a regression convolutional neural network (CNN). The experiment is conducted on the open dataset HC18 (van den Heuvel et al., 2018b) (notsure). The paper is organized as follows. Section 2 introduces related works about other experiments of HC measurment from ultrasound images. Section 3 describes detailly the materials required to implement the experiment and the approach, including the network architecture and the loss function used. Section 4 shows the exploration and analysis on the dataset. Experimental results are reported in the section 5. At the end, the conclusion and future works are drawn
+
+
+\begin{figure}[h]
+    \centering
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=1\textwidth]{./HC18.jpg}
+        \caption{Ultrasound images of fetal head from (van den Heuvel et al.,2018b). Correspond-ing head circumference (HC) is displayed in millimeters and pixels.}
+        \label{fig:Class Distribution}
+    \end{minipage}\hfill
+\end{figure}
+
+\section{Related Works}
+
+Several image segmentation-based approaches have been proposed to measure the head circumference. These methods usually consists of 2 steps, which are fetal head localization and segmentation refinement. In (van den Heuvel et al., 2018a), the fetal head localization is conducted by applying machine learning, which is a random forest classifier trained with Haar-like features; and the second step, the segmentations are refined by ellipse and Hough transform. Li et al., 2017 uses the similar method. Other approaches build upon deep segmentation models also in a two-step process, prediction and ellipse fitting. In (Bdd et al., 2019), the standard segmentation model U-Net (Ronneberger et al., 2015) is trained using images that are manually labeled, then the segmentation results are fitted to ellipses. In (Sobhaninia et al., 2019), the authors also combine image segmentation and ellipse tuning together in a multi-task network.  
+
+
+
+\section{Materials and Methodology}
+
+% Data
+\subsection{Dataset}
+The training dataset is HC18, a total of 1334 two-dimensional (2D) ultrasound images of the HC were collected from the database of the Department of Obstetrics of the Radboud University Medical Center, Nijme-gen, the Netherlands. The images are acquired from routine ultrasound screening exams of 551 pregnant women, between May 2014 and May 2015. The study data only consider the cases of fetuses that do not have any growth abnormalities. 
+
+% Methodology
+\subsection{CNN regressor}
+A standard CNN has multiple convolutional layers followed by fully-connected layers, then ends up with a classification layer, such as softmax. To utilize a classification architecture such as CNN in a regression task, the softmax layer is needed to be replaced by a fully connected regression layer with linear or sigmoid activation. 
+\subsubsection{Model architectures}
+
+In this experiment, 4 models are utilized and compared to each other. Both the first model called CNN263K with around 263K parameters and the second model CNN1M with arround 1M parameters are inspired by the base regressor of (Dubost et al.,2019). The other two models are VGG16 (Simonyanand Zisserman,2015) with more than 14 M parameters and ResNet50 (He et al.,2016) with more than 23 M parameter, both are pre-trained on ImageNet and then fine-tuned on the HC18 dataset. The fully connected regrssion layer in each model use linear activation function.
+\subsubsection{Loss Function}
+For conventional regression loss functions, the Mean Absolute Error (MAE), Mean Square Error (MSE) and Huber Loss (HL) are used. The loss functions are defined by the following fomulars:
+
+
+\section{Experiments}
+
+\subsubsection{The HC18 dataset}
+The dataset is randomly split into a training set, a validation set and a test set with the ratio of 60:20:20. The training data then is augmented to 1800 images, by performing flipping and rotation. 
+
+\subsubsection{Results}
+
+
+
+\begin{table}[h]
+\centering
+\caption{Performance of the four models measured in MAE(pixels) and \%MAE(\pm standard deviation)}
+\label{tab:regression_performance}
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+\multirow{2}{*}{Loss Function} & \multicolumn{2}{c|}{CNN\_263K} & \multicolumn{2}{c|}{CNN\_1M} \\
+\cline{2-5}
+ & mae (pixels) & \%mae ($\pm$ std) & mae (pixels) & \%mae ($\pm$ std) \\
+\hline
+MSE &90.18$\pm$86.42 &8.74$\pm$12.51 &50.96$\pm$58.61 &4.96$\pm$7.85 \\
+MAE &101.85$\pm$108.51 &10.99$\pm$18.48 &51.61$\pm$59.96 &5.15$\pm$8.66 \\
+HL &98.18$\pm$89.77 &9.69$\pm$13.9 &53.87$\pm$66.46 &5.45$\pm$9.08 \\
+\hline
+\end{tabular}
+\\[10pt] % Add some vertical space between the tables
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+\multirow{2}{*}{Loss Function} & \multicolumn{2}{c|}{Reg-VGG16} & \multicolumn{2}{c|}{Reg-ResNet50} \\
+\cline{2-5}
+ & mae (pixels) & \%mae ($\pm$ std) & mae (pixels) & \%mae ($\pm$ std) \\
+\hline
+MSE &38.85$\pm$40.31& 5.31$\pm$5.63& 36.21$\pm$35.82& 4.62$\pm$4.27\\
+MAE &40.17$\pm$40.99& 5.26$\pm$5.79& 37.34$\pm$37.46& 4.85$\pm$4.93 \\
+HL &40.7$\pm$40.07& 5.67$\pm$5.19& 38.18$\pm$37.32& 5.16$\pm$4.84 \\
+\hline
+\end{tabular}
+\end{table}
+
+In the experiments , four regression models are compared, in terms of MAE and \%MAE across three different loss functions, which are MAE, MSE and HL. In the Tab. 1, the best results are obtained in the MSE loss, followed by the results of MAE and HL with similar accuracy. Reg-VGG16 and Reg-ResNet 50 are observed as the best regressors, which shows indecate that a deeper architecture offers more power to grasp the features from images. 
+
+\section{Conclusion and Discussion}
+In this work, an approach for estimating the featal head circumference directly from images using CNN regressor is proposed. The objective is to examine whether a direct estimation method of the HC via regression can replace the conventional prediction methods, which are based on segmentation and ellipse fitting. Different CNN architectures for regression  are compared across three loss functions. Experimental results shows that the better performance is obtained in the deeper Reg-ResNet50 model, along with the MSE loss function.
+
+\section{Acknowledgments} 
+This report is paraphrased from a  publication for writing practice purpose. Special thank to the authors of this research, Jing Zhang, Caroline Petitjean, Pierre Lopez, Samia Ainouz. 
+
+\section{Reference}
+S. Budd, M. Sinclair, B. Khanal, J. Matthew, D. Lloyd, A. Gomez, N. Toussaint, E. C.Robinson, and B. Kainz. Conﬁdent head circumference measurement from ultrasoundwith real-time feedback for sonographers. In MICCAI, pages 683–691, 2019
+
+F. Dubost, G. Bortsova, H. Adams, M. A. Ikram, W. Niessen, M. Vernooij, and M. de Brui-jne. Hydranet: Data augmentation for regression neural networks. In MICCAI, pages438–446, 2019.
+
+A. Esmaeili and F. Marvasti. A novel approach to quantized matrix completion using huberloss measure. IEEE Signal Processing Letters, 26(2):337–341, 2019.
+
+K. He, X. Zhang, S. Ren, and J. Sun. Deep residual learning for image recognition. InProceedings of the IEEE conference on computer vision and pattern recognition, pages770–778, 2016.
+
+S. M. Jardim and M. A. Figueiredo. Segmentation of fetal ultrasound images. Ultrasoundin Medicine and Biology, 31(2):243 – 250, 2005.
+
+H. P. Kim, S. M. Lee, J.-Y. Kwon, Y. Park, K. C. Kim, and J. K. Seo. Automatic evaluationof fetal head biometry from ultrasound images using machine learning. Physiologicalmeasurement, 40(6):065009, 2019.
+
+S. Lathuili`ere, P. Mesejo, X. Alameda-Pineda, and R. Horaud. A comprehensive analysis ofdeep regression. IEEE transactions on pattern analysis and machine intelligence, 2019.
+
+J. Li, Y. Wang, B. Lei, J.-Z. Cheng, J. Qin, T. Wang, S. Li, and D. Ni. Automaticfetal head circumference measurement in ultrasound using random forest and fast ellipseﬁtting. IEEE journal of biomedical and health informatics, 22(1):215–223, 2017.
+
+X. Liu, W. Liang, Y. Wang, S. Li, and M. Pei. 3d head pose estimation with convolutionalneural network trained on synthetic images. In IEEE ICIP, pages 1289–1293, 2016.
+
+W. Lu, J. Tan, and R. Floyd. Automated fetal head detection and measurement in ul-trasound images by iterative randomized hough transform. Ultrasound in Medicine \&Biology, 31(7):929 – 936, 2005.
+
+O. Ronneberger, P. Fischer, and T. Brox. U-net: Convolutional networks for biomedicalimage segmentation. In MICCAI, pages 234–241. Springer, 2015.
+\end{document}
